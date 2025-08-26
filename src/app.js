@@ -10,10 +10,13 @@ app.use(morgan("dev"));
 
 import healthRoutes from "./routes/health.routes.js"
 import todoRoutes from "./routes/todo.routes.js"
+import authRoutes from "./routes/auth.routes.js"
+
 import { errorHandler } from "./middlewares/error.middlewares.js";
 
 app.use("/api/v1/health", healthRoutes)
 app.use("/api/v1/todo", todoRoutes)
+app.use("/api/v1/auth", authRoutes)
 
 app.use(errorHandler)
 

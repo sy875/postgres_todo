@@ -1,18 +1,22 @@
-import { ApiError } from "../utils/ApiError";
-import { asyncHandler } from "../utils/asyncHandler";
+import { db } from "../db/index.js";
+import { ApiError } from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import bcrypt from 'bcryptjs'
+import jwt from 'jsonwebtoken'
 
-
-export const registerUser = asyncHandler(async (req, res) => {
+export const register = asyncHandler(async (req, res) => {
     const { username, email, password } = req.body
 
-    const existingUser = await db.user.findUnique({
+    const existingUser = await db.user.findFirst({
         where: {
             OR: [
                 { username },
                 { email }
             ]
         }
-    })
+    });
+
 
     if (existingUser) {
         throw new ApiError(409, "User already registered")
@@ -53,7 +57,7 @@ export const registerUser = asyncHandler(async (req, res) => {
 export const login = asyncHandler(async (req, res) => {
     const { username, email, password } = req.body
 
-    const existingUser = await db.user.findUnique({
+    const existingUser = await db.user.findFirst({
         where: {
             OR: [
                 { username },
@@ -66,7 +70,7 @@ export const login = asyncHandler(async (req, res) => {
         throw new ApiError(409, "User does not exist")
     }
 
-    const isPasswordCorrect = await bcrypt.compare(password, user.password)
+    const isPasswordCorrect = await bcrypt.compare(password, existingUser.password)
 
     if (!isPasswordCorrect) {
         throw new ApiError(401, "invalid credentials")
