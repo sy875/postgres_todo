@@ -97,3 +97,15 @@ export const login = asyncHandler(async (req, res) => {
             )
         );
 })
+
+export const getCurrentUser = asyncHandler(async (req, res) => {
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                { user: req.user }, // send access and refresh token in response if client decides to save them by themselves
+                "User fetched  successfully"
+            )
+        );
+})

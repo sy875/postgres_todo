@@ -7,9 +7,9 @@ import { db } from "../db/index.js";
 export const createTodo = asyncHandler(async (req, res) => {
     console.log(req.body)
     const { title } = req.body
-    
+
     const newTodo = await db.todo.create({
-        data: { title }
+        data: { title, userId: req.user.id }
     })
 
     if (!newTodo) {
@@ -24,7 +24,8 @@ export const updateTodo = asyncHandler(async (req, res) => {
     const { title, complete } = req.body
     const todo = await db.todo.findUnique({
         where: {
-            id: todoId
+            id: todoId,
+            userId: req.user.id
         }
     })
 
@@ -32,7 +33,7 @@ export const updateTodo = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Todo does not exist")
     }
     const updatedTodo = await db.todo.update({
-        where: { id:todo.id },
+        where: { id: todo.id },
         data: {
             title, complete
         }
@@ -41,7 +42,25 @@ export const updateTodo = asyncHandler(async (req, res) => {
     res.status(200).json(new ApiResponse(200, { updatedTodo }, "successfully updated todo"))
 })
 export const getAllTodo = asyncHandler(async (req, res) => {
-    const allTodos = await db.todo.findMany()
+    const allTodos = await db.todo.findMany({
+        where: {
+            userId: req.user.id,
+        },
+        select: {
+            id: true,
+            title: true,
+            complete: true,
+            createdAt: true,
+            updatedAt: true,
+            user: {
+                select: {
+                    id: true,
+                    username: true,
+                    email: true
+                }
+            }
+        }
+    })
     res.status(200).json(new ApiResponse(200, { allTodos: allTodos }, "successfully fetched todo"))
 })
 export const deleteTodo = asyncHandler(async (req, res) => {
@@ -49,7 +68,8 @@ export const deleteTodo = asyncHandler(async (req, res) => {
 
     const todo = await db.todo.findUnique({
         where: {
-            id: todoId
+            id: todoId,
+            userId: req.user.id
         }
     })
 
@@ -59,7 +79,8 @@ export const deleteTodo = asyncHandler(async (req, res) => {
 
     const deletedTodo = await db.todo.delete({
         where: {
-            id: todo.id
+            id: todo.id,
+            userId: req.user.id
         }
     })
     res.status(200).json(new ApiResponse(200, { deletedTodo: deletedTodo }, "successfully deleted todo"))
